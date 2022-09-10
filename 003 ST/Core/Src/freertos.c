@@ -25,7 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "fdcan.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,6 +45,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
+
+CANobject *CAN_Message1;
 
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
@@ -114,10 +116,20 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
+  Prepare_CANFilter();
+  CAN_Message1 = GetCANMessage(0x322);                                     //Creates a CAN Message object.
+
+  /* Start the FDCAN module */
+	if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
   /* Infinite loop */
   for(;;)
   {
 	   HAL_GPIO_TogglePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin);
+	   HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &CAN_Message1->TxHeader, CAN_Message1->Tx_Payload); //Sends the distance to the CAN network.
        osDelay(100);
   }
   /* USER CODE END StartDefaultTask */

@@ -31,17 +31,29 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 
+
 /* USER CODE END Includes */
 
 extern FDCAN_HandleTypeDef hfdcan1;
 
 /* USER CODE BEGIN Private defines */
 
+typedef struct CANobject{
+	FDCAN_TxHeaderTypeDef TxHeader;
+	FDCAN_RxHeaderTypeDef RxHeader;
+	uint8_t Tx_Payload[8];
+	uint8_t Rx_Payload[8];
+}CANobject;
+
+#define CALIBRATION_ID 0x726
+
 /* USER CODE END Private defines */
 
 void MX_FDCAN1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+void Prepare_CANFilter(void);
+struct CANobject *GetCANMessage(uint32_t can_id);
 
 /* USER CODE END Prototypes */
 

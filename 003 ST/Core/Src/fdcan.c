@@ -45,8 +45,8 @@ void MX_FDCAN1_Init(void)
   hfdcan1.Init.ProtocolException = ENABLE;
   hfdcan1.Init.NominalPrescaler = 2;
   hfdcan1.Init.NominalSyncJumpWidth = 8;
-  hfdcan1.Init.NominalTimeSeg1 = 2;
-  hfdcan1.Init.NominalTimeSeg2 = 2;
+  hfdcan1.Init.NominalTimeSeg1 = 31;
+  hfdcan1.Init.NominalTimeSeg2 = 8;
   hfdcan1.Init.DataPrescaler = 1;
   hfdcan1.Init.DataSyncJumpWidth = 1;
   hfdcan1.Init.DataTimeSeg1 = 1;
@@ -90,9 +90,9 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* fdcanHandle)
   */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FDCAN;
     PeriphClkInitStruct.PLL2.PLL2M = 1;
-    PeriphClkInitStruct.PLL2.PLL2N = 24;
+    PeriphClkInitStruct.PLL2.PLL2N = 25;
     PeriphClkInitStruct.PLL2.PLL2P = 2;
-    PeriphClkInitStruct.PLL2.PLL2Q = 3;
+    PeriphClkInitStruct.PLL2.PLL2Q = 5;
     PeriphClkInitStruct.PLL2.PLL2R = 2;
     PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_3;
     PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
@@ -153,5 +153,64 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef* fdcanHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void Prepare_CANFilter(void)
+{
+	FDCAN_FilterTypeDef sFilterConfig;
+
+	/* Configure Rx filter */
+	sFilterConfig.IdType = FDCAN_STANDARD_ID;
+	sFilterConfig.FilterIndex = 0;
+	sFilterConfig.FilterType = FDCAN_FILTER_MASK;
+	sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+	sFilterConfig.FilterID1 = CALIBRATION_ID;
+	sFilterConfig.FilterID2 = 0x7FF;
+	if(HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	/* Configure global filter to reject all non-matching frames */
+	if(HAL_FDCAN_ConfigGlobalFilter(&hfdcan1, FDCAN_REJECT, FDCAN_REJECT, FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+	/* Activate Rx FIFO 0 notification */
+	if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
+	{
+		Error_Handler();
+	}
+
+}
+
+
+/**
+  * @brief  Creates the CAN message header and Rx filter.
+  * @param  Desired CAN ID
+  * @retval Pointer to CAN Message object.
+  */
+struct CANobject *GetCANMessage(uint32_t can_id)
+{
+	//FDCAN_FilterTypeDef sFilterConfig;
+	struct CANobject *CAN_Message;
+
+	CAN_Message = malloc(sizeof(struct CANobject));                                        //Memory reservation for new CAN msg object.
+
+	for(uint8_t index = 0; index <= 7; index++) CAN_Message->Tx_Payload[index] = 0x00;     //Cleans the msg payload.
+
+	/* Prepare Tx Header */
+	CAN_Message->TxHeader.Identifier = can_id;
+	CAN_Message->TxHeader.IdType = FDCAN_STANDARD_ID;
+	CAN_Message->TxHeader.TxFrameType = FDCAN_DATA_FRAME;
+	CAN_Message->TxHeader.DataLength = FDCAN_DLC_BYTES_8;
+	CAN_Message->TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+	CAN_Message->TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
+	CAN_Message->TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
+	CAN_Message->TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+	CAN_Message->TxHeader.MessageMarker = 0;
+
+	return CAN_Message;
+}
+
 
 /* USER CODE END 1 */
