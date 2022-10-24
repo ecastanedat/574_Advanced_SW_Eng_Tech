@@ -85,7 +85,6 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* fdcanHandle)
   /* USER CODE BEGIN FDCAN1_MspInit 0 */
 
   /* USER CODE END FDCAN1_MspInit 0 */
-
   /** Initializes the peripherals clock
   */
     PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_FDCAN;
@@ -96,7 +95,7 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* fdcanHandle)
     PeriphClkInitStruct.PLL2.PLL2R = 2;
     PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_3;
     PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
-    PeriphClkInitStruct.PLL2.PLL2FRACN = 0.0;
+    PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
     PeriphClkInitStruct.FdcanClockSelection = RCC_FDCANCLKSOURCE_PLL2;
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
     {
@@ -153,64 +152,109 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef* fdcanHandle)
 }
 
 /* USER CODE BEGIN 1 */
-void Prepare_CANFilter(void)
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+void FDCAN1_MSG_config(void)
 {
 	FDCAN_FilterTypeDef sFilterConfig;
+
+	//Prepare CAN data
+	myTxData[0] = 0xFF;
+	myTxData[1] = 0x00;
+	myTxData[2] = 0xFF;
+	myTxData[3] = 0x00;
+
+	myTxData[4] = 0xFF;
+	myTxData[5] = 0x00;
+	myTxData[6] = 0xFF;
+	myTxData[7] = 0x00;
 
 	/* Configure Rx filter */
 	sFilterConfig.IdType = FDCAN_STANDARD_ID;
 	sFilterConfig.FilterIndex = 0;
 	sFilterConfig.FilterType = FDCAN_FILTER_MASK;
 	sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-	sFilterConfig.FilterID1 = CALIBRATION_ID;
+	sFilterConfig.FilterID1 = 0x124;
 	sFilterConfig.FilterID2 = 0x7FF;
-	if(HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK)
-	{
-		Error_Handler();
-	}
+	HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig);
 
 	/* Configure global filter to reject all non-matching frames */
-	if(HAL_FDCAN_ConfigGlobalFilter(&hfdcan1, FDCAN_REJECT, FDCAN_REJECT, FDCAN_FILTER_REMOTE, FDCAN_FILTER_REMOTE) != HAL_OK)
-	{
-		Error_Handler();
-	}
+	HAL_FDCAN_ConfigGlobalFilter(&hfdcan1, FDCAN_REJECT, FDCAN_REJECT, FDCAN_REJECT_REMOTE, FDCAN_REJECT_REMOTE);
 
-	/* Activate Rx FIFO 0 notification */
-	if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK)
-	{
-		Error_Handler();
-	}
+	/* Configure Rx FIFO 0 watermark to 2 */
+	HAL_FDCAN_ConfigFifoWatermark(&hfdcan1, FDCAN_CFG_RX_FIFO0, 1);
 
-}
-
-
-/**
-  * @brief  Creates the CAN message header and Rx filter.
-  * @param  Desired CAN ID
-  * @retval Pointer to CAN Message object.
-  */
-struct CANobject *GetCANMessage(uint32_t can_id)
-{
-	//FDCAN_FilterTypeDef sFilterConfig;
-	struct CANobject *CAN_Message;
-
-	CAN_Message = malloc(sizeof(struct CANobject));                                        //Memory reservation for new CAN msg object.
-
-	for(uint8_t index = 0; index <= 7; index++) CAN_Message->Tx_Payload[index] = 0x00;     //Cleans the msg payload.
+	/* Activate Rx FIFO 0 watermark notification */
+	HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
 
 	/* Prepare Tx Header */
-	CAN_Message->TxHeader.Identifier = can_id;
-	CAN_Message->TxHeader.IdType = FDCAN_STANDARD_ID;
-	CAN_Message->TxHeader.TxFrameType = FDCAN_DATA_FRAME;
-	CAN_Message->TxHeader.DataLength = FDCAN_DLC_BYTES_8;
-	CAN_Message->TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-	CAN_Message->TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
-	CAN_Message->TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
-	CAN_Message->TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	CAN_Message->TxHeader.MessageMarker = 0;
+	TxHeader.Identifier = 0x322;
+	TxHeader.IdType = FDCAN_STANDARD_ID;
+	TxHeader.TxFrameType = FDCAN_DATA_FRAME;
+	TxHeader.DataLength = FDCAN_DLC_BYTES_8;
+	TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+	TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
+	TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
+	TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+	TxHeader.MessageMarker = 0;
 
-	return CAN_Message;
+	/* Start the FDCAN module */
+	HAL_FDCAN_Start(&hfdcan1);
 }
 
 
+void Toggle_CAN_Data(void)
+{
+	if(myTxData[0] == 0x00)
+	{
+		myTxData[0] = 0xFF;
+		myTxData[1] = 0x00;
+		myTxData[2] = 0xFF;
+		myTxData[3] = 0x00;
+
+		myTxData[4] = 0xFF;
+		myTxData[5] = 0x00;
+		myTxData[6] = 0xFF;
+		myTxData[7] = 0x00;
+
+	}
+	else
+	{
+		myTxData[0] = 0x00;
+		myTxData[1] = 0xFF;
+		myTxData[2] = 0x00;
+		myTxData[3] = 0xFF;
+
+		myTxData[4] = 0x00;
+		myTxData[5] = 0xFF;
+		myTxData[6] = 0x00;
+		myTxData[7] = 0xFF;
+	}
+}
+
+/**
+  * @brief  Rx FIFO 0 callback.
+  * @param  hfdcan pointer to an FDCAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified FDCAN.
+  * @param  RxFifo0ITs indicates which Rx FIFO 0 interrupts are signaled.
+  *         This parameter can be any combination of @arg FDCAN_Rx_Fifo0_Interrupts.
+  * @retval None
+  */
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
+{
+
+    /* Retrieve Rx messages from RX FIFO0 */
+    HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &RxHeader, myRxData);
+
+
+    /* Display LEDx */
+    if ((RxHeader.Identifier == 0x124) && (RxHeader.IdType == FDCAN_STANDARD_ID))
+    {
+    	print_to_serial("MSG 0x124 Custom MSG!");
+    	HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+    }
+
+}
 /* USER CODE END 1 */

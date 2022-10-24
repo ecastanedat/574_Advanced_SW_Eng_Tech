@@ -27,33 +27,27 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "string.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "Globals.h"
 
 /* USER CODE END Includes */
 
 extern FDCAN_HandleTypeDef hfdcan1;
 
 /* USER CODE BEGIN Private defines */
-
-typedef struct CANobject{
-	FDCAN_TxHeaderTypeDef TxHeader;
-	FDCAN_RxHeaderTypeDef RxHeader;
-	uint8_t Tx_Payload[8];
-	uint8_t Rx_Payload[8];
-}CANobject;
-
-#define CALIBRATION_ID 0x726
+FDCAN_TxHeaderTypeDef TxHeader;
+FDCAN_RxHeaderTypeDef RxHeader;
+uint8_t myTxData[8];
+uint8_t myRxData[8];
 
 /* USER CODE END Private defines */
 
 void MX_FDCAN1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-void Prepare_CANFilter(void);
-struct CANobject *GetCANMessage(uint32_t can_id);
+void FDCAN1_MSG_config(void);
+void Toggle_CAN_Data(void);
 
 /* USER CODE END Prototypes */
 

@@ -26,6 +26,13 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "fdcan.h"
+#include "Globals.h"
+#include "string.h"
+#include "ST7735.h"
+#include "GFX_FUNCTIONS.h"
+#include "tcpServerRAW.h"
+#include "lwip.h"
+#include "tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,25 +53,53 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
-CANobject *CAN_Message1;
-
 /* USER CODE END Variables */
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
-};
+osThreadId defaultTaskHandle;
+osThreadId myTask02Handle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void *argument);
+void StartDefaultTask(void const * argument);
+void StartTask02(void const * argument);
 
+extern void MX_LWIP_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
+
+/* GetIdleTaskMemory prototype (linked to static allocation support) */
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize );
+
+/* Hook prototypes */
+void configureTimerForRunTimeStats(void);
+unsigned long getRunTimeCounterValue(void);
+
+/* USER CODE BEGIN 1 */
+/* Functions needed when configGENERATE_RUN_TIME_STATS is on */
+__weak void configureTimerForRunTimeStats(void)
+{
+
+}
+
+__weak unsigned long getRunTimeCounterValue(void)
+{
+return 0;
+}
+/* USER CODE END 1 */
+
+/* USER CODE BEGIN GET_IDLE_TASK_MEMORY */
+static StaticTask_t xIdleTaskTCBBuffer;
+static StackType_t xIdleStack[configMINIMAL_STACK_SIZE];
+
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer, StackType_t **ppxIdleTaskStackBuffer, uint32_t *pulIdleTaskStackSize )
+{
+  *ppxIdleTaskTCBBuffer = &xIdleTaskTCBBuffer;
+  *ppxIdleTaskStackBuffer = &xIdleStack[0];
+  *pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+  /* place for user code */
+}
+/* USER CODE END GET_IDLE_TASK_MEMORY */
 
 /**
   * @brief  FreeRTOS initialization
@@ -93,16 +128,17 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  /* definition and creation of defaultTask */
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
+  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+
+  /* definition and creation of myTask02 */
+  osThreadDef(myTask02, StartTask02, osPriorityNormal, 0, 256);
+  myTask02Handle = osThreadCreate(osThread(myTask02), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
-
-  /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
-  /* USER CODE END RTOS_EVENTS */
 
 }
 
@@ -113,30 +149,87 @@ void MX_FREERTOS_Init(void) {
   * @retval None
   */
 /* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+void StartDefaultTask(void const * argument)
 {
+  /* init code for LWIP */
+  MX_LWIP_Init();
   /* USER CODE BEGIN StartDefaultTask */
-  Prepare_CANFilter();
-  CAN_Message1 = GetCANMessage(0x322);                                     //Creates a CAN Message object.
+  SM_STATES state = INIT;
 
-  /* Start the FDCAN module */
-	if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK)
-	{
-		Error_Handler();
-	}
+  //Start Timer
+  HAL_TIM_Base_Start(&htim6);
+
+  //Get current time
+  timer_val = __HAL_TIM_GET_COUNTER(&htim6);
+
+  //Start the TCP Server
+  tcp_server_init();
+
+  // Initialize the xLastWakeTime variable with the current time.
+  TickType_t xLastWakeTime;
+  xLastWakeTime = osKernelSysTick();
+
 
   /* Infinite loop */
   for(;;)
   {
-	   HAL_GPIO_TogglePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin);
-	   HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &CAN_Message1->TxHeader, CAN_Message1->Tx_Payload); //Sends the distance to the CAN network.
-       osDelay(100);
+	  if(state == INIT)
+	  {
+		  print_to_serial("Hello FreeRTOS!");
+		  ST7735_SetRotation(2);
+		  ST7735_WriteString(0, 0, "Hello Ethernet!", Font_7x10, WHITE,BLACK);
+		  ST7735_WriteString(0, 12, "Hello CAN!", Font_7x10, WHITE,BLACK);
+		  ST7735_WriteString(0, 24, "Hello SPI!", Font_7x10, WHITE,BLACK);
+		  state = IDLE;
+	  }
+	  else if(state == IDLE)
+	  {
+		  if(__HAL_TIM_GET_COUNTER(&htim6) - timer_val >= 2500)
+		  {
+			  HAL_GPIO_TogglePin(GPIOE, LED_YELLOW_Pin);
+			  timer_val = __HAL_TIM_GET_COUNTER(&htim6);
+
+			  HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);
+			  Toggle_CAN_Data();
+		  }
+		  state = IDLE;
+	  }
+
+	  osDelay(1);
+	  //osDelayUntil(&xLastWakeTime, 1);
   }
   /* USER CODE END StartDefaultTask */
+}
+
+/* USER CODE BEGIN Header_StartTask02 */
+/**
+* @brief Function implementing the myTask02 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTask02 */
+void StartTask02(void const * argument)
+{
+  /* USER CODE BEGIN StartTask02 */
+  // Initialize the xLastWakeTime variable with the current time.
+  TickType_t PreviousWakeTime;
+  PreviousWakeTime = osKernelSysTick();
+
+
+  /* Infinite loop */
+  for(;;)
+  {
+	  HAL_GPIO_TogglePin(GPIOC, SEN_TRG_Pin);
+
+
+	  //osDelayUntil(&PreviousWakeTime, pdMS_TO_TICKS(1000));
+	  //osDelayUntil(&PreviousWakeTime, 1000);
+	  osDelay(100);
+  }
+  /* USER CODE END StartTask02 */
 }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
-
