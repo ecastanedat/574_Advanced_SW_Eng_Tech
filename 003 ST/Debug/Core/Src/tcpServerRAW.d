@@ -1,8 +1,5 @@
 Core/Src/tcpServerRAW.o: ../Core/Src/tcpServerRAW.c \
- ../Core/Inc/tcpserverRAW.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/tcp.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/opt.h \
- ../LWIP/Target/lwipopts.h ../Core/Inc/main.h \
+ ../Core/Inc/tcpserverRAW.h ../Core/Inc/Globals.h ../Core/Inc/main.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal.h \
  ../Core/Inc/stm32h7xx_hal_conf.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_rcc.h \
@@ -42,6 +39,21 @@ Core/Src/tcpServerRAW.o: ../Core/Src/tcpServerRAW.c \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim_ex.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart_ex.h \
+ ../Core/Inc/usart.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
+ ../Core/Inc/FreeRTOSConfig.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/tcp.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/opt.h \
+ ../LWIP/Target/lwipopts.h ../Core/Inc/main.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/debug.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/arch.h \
  ../Middlewares/Third_Party/LwIP/system/arch/cc.h \
@@ -68,15 +80,11 @@ Core/Src/tcpServerRAW.o: ../Core/Src/tcpServerRAW.c \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/icmp.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/icmp.h \
- ../Core/Inc/Globals.h ../Core/Inc/main.h ../Core/Inc/usart.h
+ ../Core/Inc/Globals.h
 
 ../Core/Inc/tcpserverRAW.h:
 
-../Middlewares/Third_Party/LwIP/src/include/lwip/tcp.h:
-
-../Middlewares/Third_Party/LwIP/src/include/lwip/opt.h:
-
-../LWIP/Target/lwipopts.h:
+../Core/Inc/Globals.h:
 
 ../Core/Inc/main.h:
 
@@ -158,6 +166,38 @@ Core/Src/tcpServerRAW.o: ../Core/Src/tcpServerRAW.c \
 
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart_ex.h:
 
+../Core/Inc/usart.h:
+
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
+
+../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
+
+../Core/Inc/FreeRTOSConfig.h:
+
+../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
+
+../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h:
+
+../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h:
+
+../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h:
+
+../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h:
+
+../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
+
+../Middlewares/Third_Party/FreeRTOS/Source/include/list.h:
+
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/tcp.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/opt.h:
+
+../LWIP/Target/lwipopts.h:
+
+../Core/Inc/main.h:
+
 ../Middlewares/Third_Party/LwIP/src/include/lwip/debug.h:
 
 ../Middlewares/Third_Party/LwIP/src/include/lwip/arch.h:
@@ -211,7 +251,3 @@ Core/Src/tcpServerRAW.o: ../Core/Src/tcpServerRAW.c \
 ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/icmp.h:
 
 ../Core/Inc/Globals.h:
-
-../Core/Inc/main.h:
-
-../Core/Inc/usart.h:

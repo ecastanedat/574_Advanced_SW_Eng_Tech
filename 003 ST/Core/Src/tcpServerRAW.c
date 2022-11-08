@@ -56,9 +56,15 @@
  /* This file was modified by ST */
 
 #include "tcpserverRAW.h"
-#include "lwip/tcp.h"
 #include "Globals.h"
 #include "string.h"
+#include "cmsis_os.h"
+
+#define  TEST_MODE_1 1
+#define  TEST_MODE_2 2
+#define  TEST_MODE_3 3
+#define  TEST_MODE_4 4
+
 
 /*  protocol states */
 enum tcp_server_states
@@ -69,23 +75,13 @@ enum tcp_server_states
   ES_CLOSING
 };
 
-/* structure for maintaining connection infos to be passed as argument
-   to LwIP callbacks*/
-struct tcp_server_struct
-{
-  u8_t state;             /* current connection state */
-  u8_t retries;
-  struct tcp_pcb *pcb;    /* pointer on the current tcp_pcb */
-  struct pbuf *p;         /* pointer on the received/to be transmitted pbuf */
-};
-
 
 static err_t tcp_server_accept(void *arg, struct tcp_pcb *newpcb, err_t err);
 static err_t tcp_server_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err);
 static void tcp_server_error(void *arg, err_t err);
 static err_t tcp_server_poll(void *arg, struct tcp_pcb *tpcb);
 static err_t tcp_server_sent(void *arg, struct tcp_pcb *tpcb, u16_t len);
-static void tcp_server_send(struct tcp_pcb *tpcb, struct tcp_server_struct *es);
+//void tcp_server_send(struct tcp_pcb *tpcb, struct tcp_server_struct *es);
 static void tcp_server_connection_close(struct tcp_pcb *tpcb, struct tcp_server_struct *es);
 
 static void tcp_server_handle (struct tcp_pcb *tpcb, struct tcp_server_struct *es);
@@ -109,7 +105,7 @@ void tcp_server_init(void)
 
 	/* 2. bind _pcb to port 7 ( protocol) */
 	ip_addr_t myIPADDR;
-	IP_ADDR4(&myIPADDR, 192, 168, 1, 200);
+	IP_ADDR4(&myIPADDR, 192, 168, 50, 100);
 	err = tcp_bind(tpcb, &myIPADDR, 10);
 
 	if (err == ERR_OK)
@@ -381,7 +377,7 @@ static err_t tcp_server_sent(void *arg, struct tcp_pcb *tpcb, u16_t len)
   * @param  es: pointer on _state structure
   * @retval None
   */
-static void tcp_server_send(struct tcp_pcb *tpcb, struct tcp_server_struct *es)
+void tcp_server_send(struct tcp_pcb *tpcb, struct tcp_server_struct *es)
 {
   struct pbuf *ptr;
   err_t wr_err = ERR_OK;
@@ -463,13 +459,19 @@ static void tcp_server_connection_close(struct tcp_pcb *tpcb, struct tcp_server_
 
 /* Handle the incoming TCP Data */
 
-static void tcp_server_handle(struct tcp_pcb *tpcb, struct tcp_server_struct *es)
+void tcp_server_handle(struct tcp_pcb *tpcb, struct tcp_server_struct *es)
 {
 	struct tcp_server_struct *esTx = 0;
+	//struct tcp_server_struct *esTx;
 
 	/* get the Remote IP */
 	ip4_addr_t inIP = tpcb->remote_ip;
 	uint16_t inPort = tpcb->remote_port;
+
+	char strTestMode1[] = "Test_Mode_1";
+	char strTestMode2[] = "Test_Mode_2";
+	char strTestMode3[] = "Test_Mode_3";
+	char strTestMode4[] = "Test_Mode_4";
 
 	/* Extract the IP */
 	char *remIP = ipaddr_ntoa(&inIP);
@@ -482,9 +484,21 @@ static void tcp_server_handle(struct tcp_pcb *tpcb, struct tcp_server_struct *es
 	memset (buf, '\0', 100);
 
 	strncpy(buf, (char *)es->p->payload, es->p->tot_len);
-	strncpy(globalCluster.myString, (char *)es->p->payload, es->p->tot_len);
-	strcat (buf, "+ Hello from TCP SERVER\n");
 
+	if(!strcmp(buf, strTestMode1))
+		xTaskNotify((TaskHandle_t)ControllerHandle, TEST_MODE_1, eSetValueWithOverwrite);
+
+	else if(!strcmp(buf, strTestMode2))
+		xTaskNotify((TaskHandle_t)ControllerHandle, TEST_MODE_2, eSetValueWithOverwrite);
+
+	else if(!strcmp(buf, strTestMode3))
+		xTaskNotify((TaskHandle_t)ControllerHandle, TEST_MODE_3, eSetValueWithOverwrite);
+
+	else if(!strcmp(buf, strTestMode4))
+		xTaskNotify((TaskHandle_t)ControllerHandle, TEST_MODE_4, eSetValueWithOverwrite);
+
+
+	strcat (buf, " Received\n");
 
 	esTx->p->payload = (void *)buf;
 	esTx->p->tot_len = (es->p->tot_len - es->p->len) + strlen (buf);

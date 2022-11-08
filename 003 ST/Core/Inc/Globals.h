@@ -13,15 +13,11 @@
 #include "stm32h7xx_hal.h"
 #include "usart.h"
 #include "string.h"
+#include "cmsis_os.h"
+#include "lwip/tcp.h"
 
 /* Data Overhead--------------------------------------------------------------*/
 /* USER CODE BEGIN Data_Overhead */
-struct dataOverhead
-{
-	char myString[100];
-	uint16_t btn1_flag;
-
-}globalCluster;
 
 typedef enum{
 	INIT,
@@ -30,11 +26,30 @@ typedef enum{
 	EXIT
 }SM_STATES;
 
+typedef enum{
+	TM_INIT,
+	TM_MAIN,
+	TM_CLEANUP,
+	TM_EXIT
+}TM_STATES;
+
 /* USER CODE END Data_Overhead */
+
+/* structure for maintaining connection infos to be passed as argument
+   to LwIP callbacks*/
+struct tcp_server_struct
+{
+  u8_t state;             /* current connection state */
+  u8_t retries;
+  struct tcp_pcb *pcb;    /* pointer on the current tcp_pcb */
+  struct pbuf *p;         /* pointer on the received/to be transmitted pbuf */
+};
 
 uint16_t timer_val;
 
 extern struct netif gnetif;
+
+osThreadId_t ControllerHandle;
 
 /* USER CODE BEGIN Prototypes */
 void print_to_serial(char *myString);

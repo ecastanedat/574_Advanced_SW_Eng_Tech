@@ -70,12 +70,6 @@ void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pins : PC0 PC3 PCPin */
   GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_3|SEN_TRG_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -150,18 +144,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	{
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
 
-		if(globalCluster.btn1_flag == 0)
-		{
-			fillScreen(BLACK);
-			ST7735_WriteString(0, 0, "Hi Elias!", Font_7x10, WHITE,BLACK);
-			globalCluster.btn1_flag = 1;
-		}
-		else
-		{
-			fillScreen(BLACK);
-			ST7735_WriteString(0, 0, "Hi JoJo!", Font_7x10, BLACK,WHITE);
-			globalCluster.btn1_flag = 0;
-		}
 	}
 
 }

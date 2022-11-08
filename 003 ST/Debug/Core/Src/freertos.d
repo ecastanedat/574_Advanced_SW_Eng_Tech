@@ -47,42 +47,44 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim_ex.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart.h \
  ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart_ex.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
- ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
  ../Core/Inc/fdcan.h ../Core/Inc/main.h ../Core/Inc/Globals.h \
- ../Core/Inc/usart.h ../Core/Inc/Globals.h ../Core/Inc/ST7735.h \
- ../Core/Inc/fonts.h ../Core/Inc/GFX_FUNCTIONS.h \
- ../Core/Inc/tcpServerRAW.h ../LWIP/App/lwip.h \
+ ../Core/Inc/usart.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/tcp.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/opt.h \
  ../LWIP/Target/lwipopts.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/debug.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/arch.h \
  ../Middlewares/Third_Party/LwIP/system/arch/cc.h \
  ../Middlewares/Third_Party/LwIP/system/arch/cpu.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/tcpbase.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/mem.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/pbuf.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/err.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/ip.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/def.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/ip_addr.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/ip6_addr.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/def.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/netif.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/stats.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/memp.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/priv/memp_std.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/priv/memp_priv.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/priv/mem_priv.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/stats.h \
- ../Middlewares/Third_Party/LwIP/src/include/netif/etharp.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/etharp.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/pbuf.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/err.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/def.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/netif.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/ip_addr.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/ip6_addr.h \
- ../Middlewares/Third_Party/LwIP/src/include/lwip/def.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/ip4.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip4.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/ip6.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/icmp.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/icmp.h \
+ ../Core/Inc/Globals.h ../Core/Inc/ST7735.h ../Core/Inc/fonts.h \
+ ../Core/Inc/GFX_FUNCTIONS.h ../Core/Inc/tcpServerRAW.h \
+ ../LWIP/App/lwip.h \
+ ../Middlewares/Third_Party/LwIP/src/include/netif/etharp.h \
+ ../Middlewares/Third_Party/LwIP/src/include/lwip/etharp.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ethernet.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ieee.h \
  ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/etharp.h \
@@ -193,21 +195,9 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
 
 ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart_ex.h:
 
-../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h:
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os.h:
 
-../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
-
-../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
-
-../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:
-
-../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h:
-
-../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:
-
-../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h:
-
-../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
 
 ../Core/Inc/fdcan.h:
 
@@ -217,17 +207,7 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
 
 ../Core/Inc/usart.h:
 
-../Core/Inc/Globals.h:
-
-../Core/Inc/ST7735.h:
-
-../Core/Inc/fonts.h:
-
-../Core/Inc/GFX_FUNCTIONS.h:
-
-../Core/Inc/tcpServerRAW.h:
-
-../LWIP/App/lwip.h:
+../Middlewares/Third_Party/LwIP/src/include/lwip/tcp.h:
 
 ../Middlewares/Third_Party/LwIP/src/include/lwip/opt.h:
 
@@ -241,7 +221,29 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
 
 ../Middlewares/Third_Party/LwIP/system/arch/cpu.h:
 
+../Middlewares/Third_Party/LwIP/src/include/lwip/tcpbase.h:
+
 ../Middlewares/Third_Party/LwIP/src/include/lwip/mem.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/pbuf.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/err.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/ip.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/def.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/ip_addr.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/ip6_addr.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/def.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/netif.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/stats.h:
 
 ../Middlewares/Third_Party/LwIP/src/include/lwip/memp.h:
 
@@ -251,31 +253,33 @@ Core/Src/freertos.o: ../Core/Src/freertos.c \
 
 ../Middlewares/Third_Party/LwIP/src/include/lwip/priv/mem_priv.h:
 
-../Middlewares/Third_Party/LwIP/src/include/lwip/stats.h:
+../Middlewares/Third_Party/LwIP/src/include/lwip/ip4.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip4.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/ip6.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/icmp.h:
+
+../Middlewares/Third_Party/LwIP/src/include/lwip/prot/icmp.h:
+
+../Core/Inc/Globals.h:
+
+../Core/Inc/ST7735.h:
+
+../Core/Inc/fonts.h:
+
+../Core/Inc/GFX_FUNCTIONS.h:
+
+../Core/Inc/tcpServerRAW.h:
+
+../LWIP/App/lwip.h:
 
 ../Middlewares/Third_Party/LwIP/src/include/netif/etharp.h:
 
 ../Middlewares/Third_Party/LwIP/src/include/lwip/etharp.h:
-
-../Middlewares/Third_Party/LwIP/src/include/lwip/pbuf.h:
-
-../Middlewares/Third_Party/LwIP/src/include/lwip/err.h:
-
-../Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h:
-
-../Middlewares/Third_Party/LwIP/src/include/lwip/def.h:
-
-../Middlewares/Third_Party/LwIP/src/include/lwip/netif.h:
-
-../Middlewares/Third_Party/LwIP/src/include/lwip/ip_addr.h:
-
-../Middlewares/Third_Party/LwIP/src/include/lwip/ip6_addr.h:
-
-../Middlewares/Third_Party/LwIP/src/include/lwip/def.h:
-
-../Middlewares/Third_Party/LwIP/src/include/lwip/ip4.h:
-
-../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ip4.h:
 
 ../Middlewares/Third_Party/LwIP/src/include/lwip/prot/ethernet.h:
 

@@ -22,6 +22,10 @@
 #ifndef INC_TCPSERVERRAW_H_
 #define INC_TCPSERVERRAW_H_
 
+#include "Globals.h"
+
+
 void tcp_server_init(void);
+void tcp_server_send(struct tcp_pcb *tpcb, struct tcp_server_struct *es);
 
 #endif /* INC_TCPSERVERRAW_H_ */

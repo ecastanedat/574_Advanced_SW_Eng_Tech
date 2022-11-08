@@ -1,6 +1,10 @@
-freertos.c:80:13:configureTimerForRunTimeStats	4	static
-freertos.c:85:22:getRunTimeCounterValue	4	static
-freertos.c:95:6:vApplicationGetIdleTaskMemory	24	static
-freertos.c:109:6:MX_FREERTOS_Init	72	static
-freertos.c:152:6:StartDefaultTask	40	static
-freertos.c:211:6:StartTask02	24	static
+freertos.c:132:13:configureTimerForRunTimeStats	4	static
+freertos.c:137:22:getRunTimeCounterValue	4	static
+freertos.c:148:6:MX_FREERTOS_Init	8	static
+freertos.c:208:6:Controller_handler	48	static
+freertos.c:290:6:TestMode1_handler	24	static
+freertos.c:325:6:TestMode2_handler	24	static
+freertos.c:360:6:TestMode3_handler	16	static
+freertos.c:378:6:TCPSvr_handler	16	static
+freertos.c:396:6:CAN_handler	16	static
+freertos.c:414:6:TestMode4_handler	16	static
