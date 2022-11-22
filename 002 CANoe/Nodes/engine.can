@@ -1,10 +1,48 @@
-/*@@var:*/
+/*@!Encoding:1252*/
 variables 
 {
+  message 0x762 msg = {dlc = 8, byte(0) = 0x05, byte(1) = 0x22, byte(2) = 0xFE, byte(3) = 0x01};
 }
-/*@@end*/
 
-/*@@sysvarChange:Engine::EngineStateSwitch:*/
+on message 0x726
+{  
+  if(this.byte(4)== 0x01)
+  {
+    
+      switch(this.byte(3))
+      {
+        case 0x01: 
+                   if(@Demo::Failure == 0)
+                   {
+                     $EngineState::EngineSpeed = this.byte(6) * 13.7;
+                     msg.byte(4) = this.byte(4);
+                     msg.byte(5) = this.byte(5);
+                     msg.byte(6) = this.byte(6);
+                     output(msg);
+
+                   }
+                   break; 
+      }
+  }
+  else if(this.byte(4)== 0x00)
+  {
+    $EngineState::EngineSpeed = 0x00;
+  }
+    
+}
+
+on sysvar sysvar::Demo::Failure
+{
+  if(@Demo::Failure == 1)
+  {
+      msg.byte(4) = 0xFF;
+      msg.byte(5) = 0xFF;
+      msg.byte(6) = 0xFF;
+      output(msg);
+  }
+  
+}
+
 on sysvar sysvar::Engine::EngineStateSwitch
 {
  $EngineState::OnOff = @this;
@@ -13,9 +51,7 @@ on sysvar sysvar::Engine::EngineStateSwitch
   else
     $EngineState::EngineSpeed = 0;
 }
-/*@@end*/
 
-/*@@sysvarChange:Engine::EngineSpeedEntry:*/
 on sysvar sysvar::Engine::EngineSpeedEntry
 {
   if(@sysvar::Engine::EngineStateSwitch) 
@@ -23,5 +59,4 @@ on sysvar sysvar::Engine::EngineSpeedEntry
     $EngineState::EngineSpeed = @this;
   }
 }
-/*@@end*/
 
