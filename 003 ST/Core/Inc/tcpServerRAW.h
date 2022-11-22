@@ -24,6 +24,21 @@
 
 #include "Globals.h"
 
+/* structure for maintaining connection infos to be passed as argument
+   to LwIP callbacks*/
+struct tcp_server_struct
+{
+  u8_t state;             /* current connection state */
+  u8_t retries;
+  struct tcp_pcb *pcb;    /* pointer on the current tcp_pcb */
+  struct pbuf *p;         /* pointer on the received/to be transmitted pbuf */
+};
+
+struct tcp_server_struct *esTx;
+struct tcp_pcb *myTcpb;
+
+uint16_t inPort;
+ip4_addr_t inIP;
 
 void tcp_server_init(void);
 void tcp_server_send(struct tcp_pcb *tpcb, struct tcp_server_struct *es);

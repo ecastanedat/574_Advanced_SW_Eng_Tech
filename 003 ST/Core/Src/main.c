@@ -115,8 +115,8 @@ int main(void)
   MX_CRC_Init();
   /* USER CODE BEGIN 2 */
   FDCAN1_MSG_config();
-  ST7735_Init(0);
-  fillScreen(BLACK);
+  //ST7735_Init(0);
+  //fillScreen(BLACK);
   //testAll();
 
   /* USER CODE END 2 */

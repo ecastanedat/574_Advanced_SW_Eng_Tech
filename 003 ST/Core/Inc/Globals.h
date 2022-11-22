@@ -35,21 +35,20 @@ typedef enum{
 
 /* USER CODE END Data_Overhead */
 
-/* structure for maintaining connection infos to be passed as argument
-   to LwIP callbacks*/
-struct tcp_server_struct
-{
-  u8_t state;             /* current connection state */
-  u8_t retries;
-  struct tcp_pcb *pcb;    /* pointer on the current tcp_pcb */
-  struct pbuf *p;         /* pointer on the received/to be transmitted pbuf */
-};
-
 uint16_t timer_val;
 
 extern struct netif gnetif;
 
+#define CAN_MSG_FROM_DUT 0
+#define CAN_MSG_TO_DUT   1
+
+#define DUT_FAILURE      2
+
 osThreadId_t ControllerHandle;
+osThreadId_t CANHandle;
+
+
+
 
 /* USER CODE BEGIN Prototypes */
 void print_to_serial(char *myString);

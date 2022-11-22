@@ -46,6 +46,10 @@
 #define  TEST_MODE_2 2
 #define  TEST_MODE_3 3
 #define  TEST_MODE_4 4
+
+#define  START 1
+#define  SEND  1
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -56,9 +60,11 @@
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 
+uint8_t current_test_mode = 0;
+
 /* USER CODE END Variables */
 /* Definitions for Controller */
-osThreadId_t ControllerHandle;
+//osThreadId_t ControllerHandle;
 const osThreadAttr_t Controller_attributes = {
   .name = "Controller",
   .stack_size = 300 * 4,
@@ -93,7 +99,7 @@ const osThreadAttr_t TCPSvr_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 /* Definitions for CAN */
-osThreadId_t CANHandle;
+//osThreadId_t CANHandle;
 const osThreadAttr_t CAN_attributes = {
   .name = "CAN",
   .stack_size = 128 * 4,
@@ -109,6 +115,9 @@ const osThreadAttr_t TestMode4_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
+void resetMyCANTxData_TM1(void);
+void resetMyCANTxData_TM2(void);
+void resetMyCANTxData_TM3(void);
 
 /* USER CODE END FunctionPrototypes */
 
@@ -208,14 +217,14 @@ void MX_FREERTOS_Init(void) {
 void Controller_handler(void *argument)
 {
   /* init code for LWIP */
-  MX_LWIP_Init();
+  //MX_LWIP_Init();
   /* USER CODE BEGIN Controller_handler */
   SM_STATES state = INIT;
   BaseType_t status;
   uint32_t test_mode;
 
   /*init code for TCP Server*/
-  tcp_server_init();
+  //tcp_server_init();
 
   /* Infinite loop */
   for(;;)
@@ -223,11 +232,11 @@ void Controller_handler(void *argument)
 	  switch(state)
 	  {
 		  case INIT:
-			        print_to_serial("Hello FreeRTOS!");
-			  	    ST7735_SetRotation(3);
+			        MX_LWIP_Init();
+			        tcp_server_init();
+			        ST7735_Init(3);
+			        fillScreen(BLACK);
 			  		ST7735_WriteString(0, 0, "  Mini HIL Tester v0.1", Font_7x10, WHITE,BLACK);
-			  		HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);
-			  		Toggle_CAN_Data();
 
 			  		state = IDLE;
 					break;
@@ -240,29 +249,24 @@ void Controller_handler(void *argument)
 
 			        	switch(test_mode)
 			        	{
-			        		case TEST_MODE_1:
-			        			              ST7735_WriteString(0, 12, "TEST MODE 1!", Font_7x10, WHITE,BLACK);
-				        	        		  HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);
-				        	                  Toggle_CAN_Data();
-
+			        		case TEST_MODE_1: current_test_mode = TEST_MODE_1;
+			        			              ST7735_WriteString(0, 20, "Test Mode 1: Testing..", Font_7x10, WHITE,BLACK);
+			        			              xTaskNotify((TaskHandle_t)TestMode1Handle, START, eSetValueWithOverwrite);
 				        	                  break;
 
-			        		case TEST_MODE_2:
-			        					      ST7735_WriteString(0, 12, "TEST MODE 2!", Font_7x10, WHITE,BLACK);
-			        					      HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);
-			        					      Toggle_CAN_Data();
+			        		case TEST_MODE_2: current_test_mode = TEST_MODE_2;
+			        						  ST7735_WriteString(0, 30, "Test Mode 2: Testing..", Font_7x10, WHITE,BLACK);
+			        					      xTaskNotify((TaskHandle_t)TestMode2Handle, START, eSetValueWithOverwrite);
 			        			              break;
 
-			        		case TEST_MODE_3:
-			        			              ST7735_WriteString(0, 12, "TEST MODE 3!", Font_7x10, WHITE,BLACK);
-			        						  HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);
-			        						  Toggle_CAN_Data();
+			        		case TEST_MODE_3: current_test_mode = TEST_MODE_3;
+			        						  ST7735_WriteString(0, 40, "Test Mode 3: Testing..", Font_7x10, WHITE,BLACK);
+			        					      xTaskNotify((TaskHandle_t)TestMode3Handle, START, eSetValueWithOverwrite);
 			        			              break;
 
-			        		case TEST_MODE_4:
+			        		case TEST_MODE_4: current_test_mode = TEST_MODE_4;
 			        			              ST7735_WriteString(0, 12, "TEST MODE 4!", Font_7x10, WHITE,BLACK);
-			        						  HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);
-			        						  Toggle_CAN_Data();
+
 			        			              break;
 
 			        		default:          break;
@@ -290,8 +294,9 @@ void Controller_handler(void *argument)
 void TestMode1_handler(void *argument)
 {
   /* USER CODE BEGIN TestMode1_handler */
-  uint32_t flag;
   BaseType_t status;
+  uint32_t parameter1, failure_flag;
+  uint8_t expected_speed;
   TM_STATES TM1_state = TM_INIT;
 
   /* Infinite loop */
@@ -301,16 +306,71 @@ void TestMode1_handler(void *argument)
 	  switch(TM1_state)
 	  {
 		  case TM_INIT:
-					       break;
+			               status = xTaskNotifyWait(0, 0, &parameter1, pdMS_TO_TICKS(20));
+		  	  	  	  	   if(status == pdPASS)
+		  			       {
+								resetMyCANTxData_TM1();                                                             // Resets the Tx CAN frame for a new test.
+								TM1_state = TM_MAIN;
+								HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+								HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
+								HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET);
+								expected_speed = myTxData[6];
+								HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);                       // Send initial CAN msg to DUT to indicate START of test.
 
-		  case TM_MAIN:
+		  			        	status = pdFALSE;															        //Reset status flag to be ready for a new test.
+		  			       }
+
+		  	  	  	  	   break;
+
+		  case TM_MAIN:    /*Test Case #1: SPEED ENGINE TEST*/
+			               status = xTaskNotifyWait(0, 0, &failure_flag, pdMS_TO_TICKS(10));                        // Wait for DUT to respond with CAN ID 0x762.
+			               if(status == pdPASS)
+			               {
+			            	   if(failure_flag != DUT_FAILURE)
+			            	   {
+			            		   if(myTxData[6] < 0xFF)
+			                       {
+			            		       myTxData[6]++;                                                               // Increment LSB and send the msg back to the DUT.
+			            		       HAL_GPIO_TogglePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin);
+			            		   	   expected_speed = myTxData[6];
+			            		   	   HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);
+			            		   }
+			            		   else                                                                             // Finish test and print PASS results to TFT screen.
+			            		   {
+			            			   HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+			            		   	   ST7735_WriteString(0, 20, "                       ", Font_7x10, WHITE,BLACK);
+			            		       ST7735_WriteString(0, 20, "Test Mode 1: PASS", Font_7x10, WHITE,BLACK);
+			            		   	   TM1_state = TM_CLEANUP;                                                      // Send Test Mode to CLEANUP.
+			            		   	   //tcp_server_send(tpcb, esTx);
+			            		   }
+			            	   }
+			            	   else																					// Finish test and print FAIL results to TFT screen.
+			            	   {
+			            		   HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+			            		   ST7735_WriteString(0, 20, "                       ", Font_7x10, WHITE,BLACK);
+			            		   ST7735_WriteString(0, 20, "Test Mode 1: FAIL", Font_7x10, WHITE,BLACK);
+			            		   TM1_state = TM_CLEANUP;
+			            	   }
+			               }
+
+			               /* USER CODE BEGIN Test Case #2 */
+
+			               /* USER CODE END Test Case #2 */
+
+			               /* USER CODE BEGIN Test Case #3 */
+
+			               /* USER CODE END Test Case #3 */
 			               break;
 
 		  case TM_CLEANUP:
+			               myTxData[4] = 0;                                                                         // Send Speed Engine back to ZERO.
+			               HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET);
+			               HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);
+			               TM1_state = TM_INIT;
 		  			       break;
 	  }
 
-      osDelay(1);
+      osDelay(10);
   }
   /* USER CODE END TestMode1_handler */
 }
@@ -326,7 +386,8 @@ void TestMode2_handler(void *argument)
 {
   /* USER CODE BEGIN TestMode2_handler */
 
-  uint32_t flag;
+  uint32_t parameter1, failure_flag;
+  uint8_t expected_result;
   BaseType_t status;
   TM_STATES TM2_state = TM_INIT;
 
@@ -336,12 +397,49 @@ void TestMode2_handler(void *argument)
 	  switch(TM2_state)
 	  {
 		  case TM_INIT:
+						   status = xTaskNotifyWait(0, 0, &parameter1, pdMS_TO_TICKS(20));
+						   if(status == pdPASS)
+						   {
+								resetMyCANTxData_TM2();                                                             // Resets the Tx CAN frame for a new test.
+								TM2_state = TM_MAIN;
+								HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+								HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
+								HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET);
+								expected_result = myTxData[6];
+								HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);                       // Send initial CAN msg to DUT to indicate START of test.
+
+								status = pdFALSE;															        //Reset status flag to be ready for a new test.
+						   }
+
 						   break;
 
-		  case TM_MAIN:
+		  case TM_MAIN:    /*Test Case #1: HEADLIGHT TEST*/
+			               status = xTaskNotifyWait(0, 0, &failure_flag, pdMS_TO_TICKS(10));                        // Wait for DUT to respond with CAN ID 0x762.
+			               if(status == pdPASS)
+						   {
+							   if(failure_flag != DUT_FAILURE)
+							   {
+								   HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+								   ST7735_WriteString(0, 30, "                        ", Font_7x10, WHITE,BLACK);
+								   ST7735_WriteString(0, 30, "Test Mode 2: PASS", Font_7x10, WHITE,BLACK);
+								   TM2_state = TM_CLEANUP;
+							   }
+							   else																					// Finish test and print FAIL results to TFT screen.
+							   {
+								   HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+								   ST7735_WriteString(0, 30, "                       ", Font_7x10, WHITE,BLACK);
+								   ST7735_WriteString(0, 30, "Test Mode 2: FAIL", Font_7x10, WHITE,BLACK);
+								   TM2_state = TM_CLEANUP;
+							   }
+						   }
+
 						   break;
 
 		  case TM_CLEANUP:
+			  	  	  	   //myTxData[4] = 0;
+			  			   //HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);
+			               HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET);
+			  			   TM2_state = TM_INIT;
 						   break;
 	  }
 
@@ -360,9 +458,62 @@ void TestMode2_handler(void *argument)
 void TestMode3_handler(void *argument)
 {
   /* USER CODE BEGIN TestMode3_handler */
+
+  uint32_t parameter1, failure_flag;
+  uint8_t expected_result;
+  BaseType_t status;
+  TM_STATES TM3_state = TM_INIT;
+
   /* Infinite loop */
   for(;;)
   {
+	  switch(TM3_state)
+	  {
+		  case TM_INIT:
+			            status = xTaskNotifyWait(0, 0, &parameter1, pdMS_TO_TICKS(20));
+					    if(status == pdPASS)
+					    {
+							resetMyCANTxData_TM3();                                                             // Resets the Tx CAN frame for a new test.
+							TM3_state = TM_MAIN;
+							HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, GPIO_PIN_RESET);
+							HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
+							HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET);
+							expected_result = myTxData[6];
+							HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, myTxData);                       // Send initial CAN msg to DUT to indicate START of test.
+
+							status = pdFALSE;															        //Reset status flag to be ready for a new test.
+					    }
+
+			            break;
+
+		  case TM_MAIN:    /*Test Case #3: HAZARD LIGHTS TEST*/
+						   status = xTaskNotifyWait(0, 0, &failure_flag, pdMS_TO_TICKS(10));                        // Wait for DUT to respond with CAN ID 0x762.
+						   if(status == pdPASS)
+						   {
+							   if(failure_flag != DUT_FAILURE)
+							   {
+								   HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+								   ST7735_WriteString(0, 40, "                        ", Font_7x10, WHITE,BLACK);
+								   ST7735_WriteString(0, 40, "Test Mode 3: PASS", Font_7x10, WHITE,BLACK);
+								   TM3_state = TM_CLEANUP;
+							   }
+							   else																					// Finish test and print FAIL results to TFT screen.
+							   {
+								   HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+								   ST7735_WriteString(0, 40, "                       ", Font_7x10, WHITE,BLACK);
+								   ST7735_WriteString(0, 40, "Test Mode 3: FAIL", Font_7x10, WHITE,BLACK);
+								   TM3_state = TM_CLEANUP;
+							   }
+						   }
+
+			               break;
+
+		  case TM_CLEANUP:
+			               HAL_GPIO_WritePin(LED_YELLOW_GPIO_Port, LED_YELLOW_Pin, GPIO_PIN_RESET);
+			               TM3_state = TM_INIT;
+			               break;
+	  }
+
     osDelay(1);
   }
   /* USER CODE END TestMode3_handler */
@@ -396,10 +547,26 @@ void TCPSvr_handler(void *argument)
 void CAN_handler(void *argument)
 {
   /* USER CODE BEGIN CAN_handler */
+  BaseType_t status;
+  uint32_t failure_flag;
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+	  status = xTaskNotifyWait(0, 0, &failure_flag, pdMS_TO_TICKS(10));
+
+	  if(status == pdPASS)
+	  {
+		  switch(current_test_mode)
+		  {
+		  	  case TEST_MODE_1:   xTaskNotify((TaskHandle_t)TestMode1Handle, failure_flag, eSetValueWithOverwrite);  break;
+		  	  case TEST_MODE_2:   xTaskNotify((TaskHandle_t)TestMode2Handle, failure_flag, eSetValueWithOverwrite);  break;
+		  	  case TEST_MODE_3:   xTaskNotify((TaskHandle_t)TestMode3Handle, failure_flag, eSetValueWithOverwrite);  break;
+		  	  case TEST_MODE_4:   xTaskNotify((TaskHandle_t)TestMode2Handle, failure_flag, eSetValueWithOverwrite);  break;
+		  }
+	  }
+
+      osDelay(1);
   }
   /* USER CODE END CAN_handler */
 }
@@ -424,6 +591,43 @@ void TestMode4_handler(void *argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+void resetMyCANTxData_TM1(void)
+{
+	myTxData[0] = 0x05;
+	myTxData[1] = 0x22;
+	myTxData[2] = 0xFE;
+	myTxData[3] = 0x01;
 
+	myTxData[4] = 0x01;
+	myTxData[5] = 0x00;
+	myTxData[6] = 0x00;
+	myTxData[7] = 0x00;
+}
+
+void resetMyCANTxData_TM2(void)
+{
+	myTxData[0] = 0x05;
+	myTxData[1] = 0x22;
+	myTxData[2] = 0xFE;
+	myTxData[3] = 0x02;
+
+	myTxData[4] = 0x01;
+	myTxData[5] = 0x00;
+	myTxData[6] = 0x00;
+	myTxData[7] = 0x00;
+}
+
+void resetMyCANTxData_TM3(void)
+{
+	myTxData[0] = 0x05;
+	myTxData[1] = 0x22;
+	myTxData[2] = 0xFE;
+	myTxData[3] = 0x03;
+
+	myTxData[4] = 0x01;
+	myTxData[5] = 0x00;
+	myTxData[6] = 0x00;
+	myTxData[7] = 0x00;
+}
 /* USER CODE END Application */
 

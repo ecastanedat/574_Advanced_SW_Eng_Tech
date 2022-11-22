@@ -41,6 +41,17 @@ FDCAN_RxHeaderTypeDef RxHeader;
 uint8_t myTxData[8];
 uint8_t myRxData[8];
 
+typedef struct CANobject{
+	FDCAN_TxHeaderTypeDef TxHeader;
+	FDCAN_RxHeaderTypeDef RxHeader;
+	uint8_t Tx_Payload[8];
+	uint8_t Rx_Payload[8];
+}CANobject;
+
+CANobject CAN_MSG_Received;
+
+#define CALIBRATION_ID 0x726
+
 /* USER CODE END Private defines */
 
 void MX_FDCAN1_Init(void);

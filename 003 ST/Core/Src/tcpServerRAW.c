@@ -461,12 +461,11 @@ static void tcp_server_connection_close(struct tcp_pcb *tpcb, struct tcp_server_
 
 void tcp_server_handle(struct tcp_pcb *tpcb, struct tcp_server_struct *es)
 {
-	struct tcp_server_struct *esTx = 0;
-	//struct tcp_server_struct *esTx;
+	//struct tcp_server_struct *esTx = 0;
 
 	/* get the Remote IP */
-	ip4_addr_t inIP = tpcb->remote_ip;
-	uint16_t inPort = tpcb->remote_port;
+	inIP = tpcb->remote_ip;
+	inPort = tpcb->remote_port;
 
 	char strTestMode1[] = "Test_Mode_1";
 	char strTestMode2[] = "Test_Mode_2";

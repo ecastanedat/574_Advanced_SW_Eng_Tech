@@ -6,4 +6,4 @@ tcpServerRAW.c:309:14:tcp_server_poll	24	static
 tcpServerRAW.c:349:14:tcp_server_sent	32	static
 tcpServerRAW.c:380:6:tcp_server_send	32	static
 tcpServerRAW.c:440:13:tcp_server_connection_close	16	static
-tcpServerRAW.c:462:6:tcp_server_handle	192	static
+tcpServerRAW.c:462:6:tcp_server_handle	176	static

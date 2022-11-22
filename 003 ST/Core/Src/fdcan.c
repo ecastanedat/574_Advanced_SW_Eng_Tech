@@ -161,14 +161,14 @@ void FDCAN1_MSG_config(void)
 	FDCAN_FilterTypeDef sFilterConfig;
 
 	//Prepare CAN data
-	myTxData[0] = 0xFF;
-	myTxData[1] = 0x00;
-	myTxData[2] = 0xFF;
-	myTxData[3] = 0x00;
+	myTxData[0] = 0x05;
+	myTxData[1] = 0x22;
+	myTxData[2] = 0xFE;
+	myTxData[3] = 0x01;
 
-	myTxData[4] = 0xFF;
+	myTxData[4] = 0x01;
 	myTxData[5] = 0x00;
-	myTxData[6] = 0xFF;
+	myTxData[6] = 0x00;
 	myTxData[7] = 0x00;
 
 	/* Configure Rx filter */
@@ -176,7 +176,7 @@ void FDCAN1_MSG_config(void)
 	sFilterConfig.FilterIndex = 0;
 	sFilterConfig.FilterType = FDCAN_FILTER_MASK;
 	sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-	sFilterConfig.FilterID1 = 0x124;
+	sFilterConfig.FilterID1 = 0x762;
 	sFilterConfig.FilterID2 = 0x7FF;
 	HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig);
 
@@ -190,7 +190,7 @@ void FDCAN1_MSG_config(void)
 	HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
 
 	/* Prepare Tx Header */
-	TxHeader.Identifier = 0x322;
+	TxHeader.Identifier = 0x726;
 	TxHeader.IdType = FDCAN_STANDARD_ID;
 	TxHeader.TxFrameType = FDCAN_DATA_FRAME;
 	TxHeader.DataLength = FDCAN_DLC_BYTES_8;
@@ -205,35 +205,6 @@ void FDCAN1_MSG_config(void)
 }
 
 
-void Toggle_CAN_Data(void)
-{
-	if(myTxData[0] == 0x00)
-	{
-		myTxData[0] = 0xFF;
-		myTxData[1] = 0x00;
-		myTxData[2] = 0xFF;
-		myTxData[3] = 0x00;
-
-		myTxData[4] = 0xFF;
-		myTxData[5] = 0x00;
-		myTxData[6] = 0xFF;
-		myTxData[7] = 0x00;
-
-	}
-	else
-	{
-		myTxData[0] = 0x00;
-		myTxData[1] = 0xFF;
-		myTxData[2] = 0x00;
-		myTxData[3] = 0xFF;
-
-		myTxData[4] = 0x00;
-		myTxData[5] = 0xFF;
-		myTxData[6] = 0x00;
-		myTxData[7] = 0xFF;
-	}
-}
-
 /**
   * @brief  Rx FIFO 0 callback.
   * @param  hfdcan pointer to an FDCAN_HandleTypeDef structure that contains
@@ -246,14 +217,19 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
 
     /* Retrieve Rx messages from RX FIFO0 */
-    HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &RxHeader, myRxData);
+    HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &CAN_MSG_Received.RxHeader, CAN_MSG_Received.Rx_Payload);
 
 
-    /* Display LEDx */
-    if ((RxHeader.Identifier == 0x124) && (RxHeader.IdType == FDCAN_STANDARD_ID))
+    if ((CAN_MSG_Received.RxHeader.Identifier == 0x762) && (CAN_MSG_Received.RxHeader.IdType == FDCAN_STANDARD_ID))
     {
-    	print_to_serial("MSG 0x124 Custom MSG!");
-    	HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
+    	for(uint8_t counter = 0; counter <= 7; counter++)
+    		myRxData[counter] = CAN_MSG_Received.Rx_Payload[counter];
+
+    	if(myRxData[4] == 0xFF)
+    		xTaskNotifyFromISR((TaskHandle_t)CANHandle, DUT_FAILURE, eSetValueWithOverwrite, NULL);
+
+    	else
+    		xTaskNotifyFromISR((TaskHandle_t)CANHandle, CAN_MSG_FROM_DUT, eSetValueWithOverwrite, NULL);
     }
 
 }
