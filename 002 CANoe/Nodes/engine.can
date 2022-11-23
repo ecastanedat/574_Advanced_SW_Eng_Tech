@@ -6,7 +6,7 @@ variables
 
 on message 0x726
 {  
-  if(this.byte(4)== 0x01)
+  if(this.byte(4)== 0x01) //Checks for Enable Byte.
   {
     
       switch(this.byte(3))
@@ -21,12 +21,24 @@ on message 0x726
                      output(msg);
 
                    }
-                   break; 
+                   break;
+                  
+        case 0x04: if(@Demo::Failure == 0)
+                   {
+                     $EngineState::OnOff = this.byte(5);
+                     msg.byte(3) = this.byte(3);
+                     msg.byte(4) = this.byte(4);
+                     msg.byte(5) = this.byte(5);
+                     msg.byte(6) = this.byte(6);
+                     output(msg);
+                   }
+                   break;
       }
   }
   else if(this.byte(4)== 0x00)
   {
     $EngineState::EngineSpeed = 0x00;
+    $EngineState::OnOff = 0x00;
   }
     
 }
