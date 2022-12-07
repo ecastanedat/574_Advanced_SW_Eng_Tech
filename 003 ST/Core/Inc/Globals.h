@@ -1,8 +1,13 @@
 /*
- * Globals.h
- *
- *  Created on: Nov 29, 2021
- *      Author: uib01493
+  * ****************************************************************************
+  * University of Michigan - Dearborn
+  *
+  * Course: ECE 574 Adv SW Engineering Methods
+  * Project: HIL Test Tool
+  ******************************************************************************
+  * File Name          : Globals.h
+  * Description        : Code for freertos applications
+  ******************************************************************************
  */
 
 #ifndef INC_GLOBALS_H_
@@ -46,8 +51,6 @@ extern struct netif gnetif;
 
 osThreadId_t ControllerHandle;
 osThreadId_t CANHandle;
-
-
 
 
 /* USER CODE BEGIN Prototypes */
